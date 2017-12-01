@@ -28,33 +28,25 @@ def process_video(path = "./Videos/MVI_1049.avi"):
 
 		mask = cv2.add(red_mask, blue_mask)
 
+		# Erode to reduce noise and dilate to focus
 		mask = cv2.erode(mask, None, iterations = 1)
 		mask = cv2.dilate(mask, None, iterations = 3)
 
 		# Find contours in the mask
-		im, cnts, hierarchy = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+		cnts = cv2.findContours(image = mask.copy(), mode = cv2.RETR_EXTERNAL, method = cv2.CHAIN_APPROX_SIMPLE)[-2]
 
 		# Proceed if at least one contour was found
 		if len(cnts) > 0:
-			#cv2.drawContours(frame, cnts, -1, (0, 255, 0), 1)
+			# Draw all contours and fill the contour interiors -> mask
+			cv2.drawContours(image = mask, contours = cnts, contourIdx = -1, color = 255, thickness = -1)
+			mask = cv2.dilate(mask, None, iterations = 5)
+			mask = cv2.erode(mask, None, iterations = 5)
 
-			for each in cnts:
-				#(xCenter, yCenter), radius = cv2.minEnclosingCircle(each)
-				#center = (int(xCenter), int(yCentqer))
-				#radius = int(radius)
-
-				
-				#cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 1)
-				cv2.drawContours(image = mask, contours = each, contourIdx = -1, color = 255, thickness = -1)
-				mask = cv2.dilate(mask, None, iterations = 5)
-				mask = cv2.erode(mask, None, iterations = 5)
-
-					#cv2.circle(frame, center, radius, (0, 0, 255), 1)
-
-		cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[-2]
+		# Draw a rectangle outside each contour
+		cnts = cv2.findContours(image = mask.copy(), mode = cv2.RETR_EXTERNAL, method = cv2.CHAIN_APPROX_SIMPLE)[-2]
 		for each in cnts:
 			x, y, w, h = cv2.boundingRect(each)
-			if w > 10 and h > 10 and h/w > 0.9 and float(h)/w < 1.5:
+			if w > 10 and h > 10 and float(h)/w > 0.9 and float(h)/w < 1.5:
 				cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 1)
 		#result = cv2.bitwise_and(frame, frame, mask)
 		
@@ -68,5 +60,6 @@ def process_video(path = "./Videos/MVI_1049.avi"):
 	cap.release()
 	cv2.destroyAllWindows()
 
-process_video("./Videos/MVI_1049.avi")
-process_video("./Videos/MVI_1054.avi")
+if __name__ == "__main__":
+	process_video("./Videos/MVI_1049.avi")
+	process_video("./Videos/MVI_1054.avi")
